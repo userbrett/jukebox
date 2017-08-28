@@ -1,0 +1,159 @@
+HOWTO.kernel
+===============
+
+Introduction
+-------------------------------------------------------------------------------
+
+Much of the Linux kernel can be built as modules, but there are some actions
+that must be within the base kernel.  For the diskless jukebox, these are
+required:
+
+    1) The ability to configure the network adapter using plug 'n play.
+    2) Mounting of a NFS filesystem as the root filesystem.
+
+Since these both need to be in the base kernel, (and they are not that way
+in any distro AFAIK), a custom kernel for the diskless jukebox will need to
+be compiled.
+
+Implied within these two general requirements are several more specific
+requirements, such as having a suitable network device driver (NDD) compiled
+into the kernel.
+
+To simplify the verification of the specific requirements, a simple "grep"
+of the kernel configuration will quickly verify whether those requirements
+are met:
+
+    $ grep -E 'CONFIG_IP_PNP|CONFIG_NFS|CONFIG_ROOT_NFS|8169' .config
+    CONFIG_IP_PNP=y
+    CONFIG_IP_PNP_DHCP=y
+    # CONFIG_IP_PNP_BOOTP is not set
+    # CONFIG_IP_PNP_RARP is not set
+    CONFIG_R8169=y                     <-- host specific network adapter
+    CONFIG_NFS_FS=y
+    CONFIG_NFS_V3=y
+    CONFIG_NFS_V3_ACL=y
+    CONFIG_NFS_V4=y
+    CONFIG_NFS_V4_1=y
+    CONFIG_ROOT_NFS=y
+    CONFIG_NFS_USE_LEGACY_DNS=y
+    # CONFIG_NFSD is not set
+    CONFIG_NFS_ACL_SUPPORT=y
+    CONFIG_NFS_COMMON=y
+
+As demonstrated above, the network adaptor, plug 'n play via DHCP, and NFS v3/4
+are all configured into the base kernel.
+
+For more information about these requirements, as well as some recommendations
+when using "make menuconfig", see APPENDIX A in this HOWTO.
+
+Since kernel configurations and build environments may impact the ability to
+successfully build a kernel, it is recommended that the reader begin using
+the config file provided with this project, and also build the on the same os,
+release and arch as the jukebox.  Using a VM for this is ideal.  As mentioned
+in the main README, all instructions are based on:
+
+    $ cat /etc/redhat-release 
+    CentOS release 6.9 (Final)
+    $ uname -r
+    2.6.32-696.6.3.el6.x86_64
+
+
+
+Compiling the kernel and kernel modules
+-------------------------------------------------------------------------------
+
+This project provides three (3) options.  They are:
+
+    1.  Deploy the kernel and modules without RPMs.
+        - This is the fastest and easiest.
+        - ./configure, make and make install
+        - Requires ~1.5 GB in the build directory.
+        - Deployed ~100 MB.
+
+    2.  Create a minimal number of RPMs using rpmbuild.
+        - Requires ~10 GB in the build directory.
+        - Deployed ~300 MB.
+        - Additional RPMs may be enabled if desired by un-"--with-outing" them.
+        - Recommended when packages are desired.
+
+    3.  Create one (1) big RPM with debugging using rpmbuild and make binrpm-pkg.
+        - Requires ~10 GB in the build directory.
+        - Deployed ~1.5 GB - not stripped of debugging.
+        - Recommended when debugging is desired.
+
+    The names of the RPMs, kernels, and thus the module locations will differ
+    between these options.
+
+    For option #1, see 2.HOWTO.kernel.option-1.
+    For option #2, see 2.HOWTO.kernel.option-2.
+    For option #3, see 2.HOWTO.kernel.option-3.
+
+
+==============================================================================
+
+
+Appendix A
+-----------------------------
+
+$ make menuconfig
+
+    Required:
+    ---------
+    Networking support
+      -> Networking options
+         -> [*] IP: kernel level autoconfiguration
+         -> [*] IP: DHCP support
+    Device Drivers
+      -> Network device support
+           -> Ethernet (1000 Mbit)
+              <*> Realtek 8169 gigabit ethernet support
+              (Select ***YOUR*** NIC or NICs)
+    File systems
+      -> <*> Second extended fs support
+      -> [*] Network File Systems
+         -> <*> NFS client support
+            -> [*] *ALL* the "NFS client support..." options.
+         -> [*] Root file system on NFS
+         -> [*] Use the legacy NFS DNS resolver
+
+    Recommended:
+    ------------
+    General Setup
+      -> <*> Kernel .config support
+    Device Drivers
+      -> Generic Driver Options
+         -> [*] Include in-kernel firmware blobs in kernel binary
+
+    About one required option:
+    ------------------------------
+    - Use the legacy NFS DNS resolver:  Attempts to build the kernel fail
+         with this disabled.  TODO:  Create a patch to build without it.
+
+    About the recommended options:
+    ------------------------------
+    - In kernel .config (ikconfig) support:
+      Allows you extract the in-kernelconfig using the "extract-ikconfig"
+      command.  Note that this author was unable to successfully use the
+      CentOS provided extract-ikconfig, but the one (slightly modified) from
+      Linus works great:
+      https://github.com/torvalds/linux/blob/master/scripts/extract-ikconfig
+      To look at the compiled kernel on the file system:
+        $ ~/jukebox/kernel/extract-ikconfig /nfsroot/jukebox/boot/vmlinuz-* |\
+            grep -E 'CONFIG_IP_PNP|CONFIG_NFS|CONFIG_ROOT_NFS|8169'
+      To view a running kernel with ikconfig:
+        $ zgrep IKCONFIG /proc/config.gz
+        $ zgrep -E -e 'IKCONFIG|CONFIG_IP_PNP|CONFIG_ROOT_NFS' /proc/config.gz
+      If built as a module, the ikconfig module will need to be loaded first:
+        $ sudo modprobe ikconfig
+      Add "IKCONFIG" to the kernel config grep to verify it is configured.
+    - Include in-kernel firmware:
+      If not enabled, firmware updates from the rootfs will not be available,
+      and booting may hang for ~1 min.
+      Add "FIRMWARE_IN" to the kernel config grep to verify it is configured.
+
+    Optional kernel configurations:
+    -------------------------------
+    Anything else you want to try.  Adding or removing stuff from the kernel,
+    not building all those unnecessary modules, etc.  Note that changes to the
+    build config may result in compilation errors.
+

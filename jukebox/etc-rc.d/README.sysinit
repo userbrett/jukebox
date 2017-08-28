@@ -1,0 +1,9 @@
+README.sysinit
+==============
+
+This directory contains the file rc.sysinit.  It is used as part of the
+jukebox exemplar based on CentOS 6.9.
+
+To use this file, replace the /etc/rc.d/rc.sysinit on the rootfs with
+the rc.sysinit provided with this project.
+

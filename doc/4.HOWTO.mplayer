@@ -1,0 +1,133 @@
+HOWTO.mplayer
+===============
+
+Linux makes a great server, but the desktop aspects, in particular the
+multimedia aspects, have often been secondary.  And MPlayer, which is
+incredibly powerful, is a very good example of this.
+
+First, what is MPlayer?  Well, it is software that plays audio and video, and
+it comes as a CLI.  SMPlayer works with MPlayer to provide a GUI.  Then there
+is MPlayer G2, mplayer2, mpv and CygMP - all in the "mplayer" family.  In this
+project, we will be working with the original MPlayer project found at
+http://www.mplayerhq.hu/MPlayer/releases/ - which means compiling MPlayer.
+
+                         *** IMPORTANT ***
+When compiling MPlayer for the jukebox, the same architecture (x64, i686, etc.),
+and seemingly the same CPU model (i7, i5, etc.) will need to match.  In my
+case, I ended up temporarily attaching a disk to my diskless jukebox,
+installing CentOS 6.9 with all the compile tools, and building MPlayer on the
+jukebox.                 *** IMPORTANT ***
+
+In addition, compiling MPlayer has many configuration options.  The ideal
+option is to be able to compile a static MPlayer binary.  With the static
+binary, all the dependencies (bits in the shared libraries) are included in
+the binary.  While this worked as late as CentOS-5.4, but as of CentOS-6.9 it
+does not seem to succeed.  Thus, the non-static option may be needed.
+
+As provided, the jukebox scripts provided with this project rely upon the
+mplayer command to be in the $PATH of the "play" user.  Should you wish to
+replace MPlayer with another music player, install the new player into the
+$PATH of the user play and replace the calls to MPlayer in the scripts.  You
+will probably need to change the "help" screen as that was created based on
+MPlayer.
+
+Moving forward with MPlayer, the first thing is getting the MPlayer source.
+There are many options, of which two are listed here.  Getting the latest
+release is a known quantity, so it is recommended:
+
+   Get the 1.3.0 release:
+     $ wget http://www.mplayerhq.hu/MPlayer/releases/MPlayer-1.3.0.tar.xz
+     Currently the latest release - 16-Feb-2016
+     http://www.mplayerhq.hu/MPlayer/releases/
+   Then extract the tarball:
+     $ tar xf MPlayer-1.3.0.tar.xz
+     $ cd MPlayer-1.3.0
+
+   -or-
+
+   Checkout the latest from subversion:
+     $ svn checkout svn://svn.mplayerhq.hu/mplayer/trunk mplayer
+     $ cd mplayer
+
+   
+You will need the yasm RPM, which comes from the EPEL repo.
+
+   $ sudo yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
+   $ sudo yum install yasm
+   $ sudo yum remove epel-release
+
+
+   Option 1: Compile a static MPlayer binary: (preferred)
+   ------------------------------------------------------
+
+   $ ./configure --enable-static
+   No FFmpeg checkout, press enter to download one with git or CTRL+C to abort
+   [ENTER]
+   $ make (if it fails, use option #2)
+
+
+   Option 2: Compile a MPlayer with dependencies
+   ------------------------------------------------------
+
+   $ ./configure
+   $ make
+
+
+Remove yasm:
+
+   $ sudo yum install yasm
+
+
+Copy the compiled MPlayer binary to the rootfs of the jukebox:
+
+    $ scp mplayer nfs:/nfsroot/jukebox/usr/local/bin
+
+
+If you were able to create a static binary, then all the dependencies to run
+MPlayer should be included within the executable.  If you don't have a static
+binary, these RPMs and their dependencies will need to be installed.  To
+install them from the server, run:
+
+    $ sudo yum --installroot=/nfsroot/jukebox install gnutls libpng libmng \
+                 alsa-lib freetype fontconfig libXext libXinerama libXxf86vm \
+                 mesa-libGL pulseaudio-libs
+
+
+At this point, you should be able to successfully play audio files using the
+MPlayer command:
+
+    [play@jukebox]$ mplayer /music/ReadyToPlay.m4
+
+
+MPlayer is pretty flexible on what it can play.  You may want to download some
+sample files of different types to verify that they can be played.  One place
+that has sample files is:  http://techslides.com/sample-files-for-development
+
+
+The volume can be adjusted using the "amixer" command.  This example sets the
+volume at 75%:
+
+   $ amixer set 'Master' 75%
+
+   By default it is set to 100% in /etc/rc.d/rc.sysinit
+
+
+To see the audio playback hardware, run this command:
+
+   $ aplay -l
+
+   For more options with aplay, see the man page.
+
+
+Troubleshooting:
+
+    1.  Did the sound modules load during boot without error?
+        $ lsmod | grep snd
+        $ dmesg
+    2.  Were the sound devices devices detected?
+        $ aplay -l
+    3.  Did you add the user play to the "audio" group?
+
+
+Once you are able to successfully play /music/ReadyToPlay.m4, proceed to
+5.HOWTO.play.

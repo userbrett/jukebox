@@ -1,0 +1,78 @@
+HOWTO.kernel - Option 1
+=========================
+
+
+Build and install a kernel without rpmbuild
+-----------------------------------------------------------
+
+This option requires ~1.5 GB space to build.
+
+This option builds and installs without creating RPMs.
+The documentation indicates that the modules will be stripped,
+however, they appear as "not stripped".
+
+NOTE:  A check of modules in a standard CentOS-6.9 installation
+       also report the kernel modules as not stripped.
+
+Download a suitable kernel from kernel.org:
+
+  $ wget https://www.kernel.org/pub/linux/kernel/v2.6/linux-2.6.39.tar.xz
+
+Extract the kernel source:
+
+  $ tar xf linux-2.6.39.tar.xz
+
+Configure the kernel and modules:
+
+  $ cd linux-2.6.39/
+
+  Copy the jukebox config file to the BUILD directory:
+  $ cp ~/jukebox/kernel/jukebox-config-2.6.32-696.6.3.el6.x86_64 .config
+
+  $ make oldconfig
+    Take the defaults unless you know what you are doing.
+
+  $ make menuconfig
+    Select General setup
+    Change the second line to "-jukeboxYOU", where YOU is as above.
+    Enable the third line, "Automatically append..."
+    Verify that the jukebox requirements are met.
+        See Appendix A of 2.HOWTO.kernel.
+    If needed, add a NDD for the Ethernet NIC.
+        See Appendix A of 2.HOWTO.kernel for details.
+    Exit menuconfig, saving the new kernel configuration.
+
+  Check for this setting which may cause compilation to fail:
+  $ vi .config
+    Search for CONFIG_CROSS_COMPILE="n"
+    If found, change to: CONFIG_CROSS_COMPILE=""
+
+Build the kernel and modules:
+
+  Though the 'rpmbuild' commands detect and enable multiple CPUs to perform the
+  build, the 'make' command does not.  To enable multiple CPUs, use the -jX
+  option, where X is the number of CPUs to use.
+
+  $ make [-jX] bzImage
+  $ file arch/x86/boot/bzImage
+    arch/x86/boot/bzImage: Linux kernel x86 boot executable bzImage, \
+    version 2.6.39-jukeboxYOU (brett@kvm.br, RO-rootFS, swap_dev 0x3, Normal VGA
+
+  $ make [-jX] modules
+  $ file ipc/ipc_sysctl.o
+    ipc/ipc_sysctl.o: ELF 64-bit LSB relocatable, x86-64, version 1 (SYSV), not stripped
+
+Install the kernel and modules:
+
+  Verify that you have a valid backup of the current rootfs.  Instructions
+  for creating a backup may be found near the endo of 1.HOWTO.rootfs.
+
+  $ sudo make INSTALL_MOD_PATH=/nfsroot/jukebox INSTALL_MOD_STRIP=1 modules_install
+  $ sudo make INSTALL_PATH=/nfsroot/jukebox/boot install
+
+Should you need to remove the newly installed kernel and modules from the rootfs,
+  this commands may be used:
+
+  $ sudo rm -fr /nfsroot/jukebox/boot/System.map-2.6.39-jukeboxYOU \
+                /nfsroot/jukebox/boot/vmlinuz-2.6.39-jukeboxYOU    \
+                /nfsroot/jukebox/lib/modules/2.6.39-jukeboxYOU

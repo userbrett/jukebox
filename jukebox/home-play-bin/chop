@@ -1,0 +1,7 @@
+# chop
+#
+# Chop off the directory path
+#
+# Usage: $ ss all keyword1 keyword2 | chop | sort
+#
+sed "s/.*\///"

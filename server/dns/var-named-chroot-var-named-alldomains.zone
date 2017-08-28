@@ -1,0 +1,108 @@
+; $ORIGIN .	; Commented out.  This file serves multiple domains.
+;
+; vi:set ts=5
+;
+$TTL 10		; 10 seconds
+;
+; -----------------------------------------------------------------
+; Authoritative internally for:
+;    domain.com, domain2.com, domain.net, domain.org, etc.
+; -----------------------------------------------------------------
+@	IN	SOA	number1.domain.com. root.number1.domain.com. (
+				2017081001	; serial
+				3H			; refresh
+				15M			; retry
+				1W			; expiry
+				1D )			; minimum
+; -----------------------------------------------------------------
+;
+$TTL 3600 ; 1 hour
+;
+; HTTP Servers
+				IN	A		192.168.0.4
+;
+; MAIL Servers
+				IN	MX	0	smtp
+;
+; DNS Servers
+				IN	NS		number1
+				IN	NS		kvm
+				IN	NS		smtp
+				IN	NS		http
+;
+; Floating Names
+mail				IN	CNAME	smtp 
+www				IN	CNAME	http
+;
+;
+; -----------------------------------------------------------------
+; Hostnames
+; -----------------------------------------------------------------
+;
+;
+; Routers
+; -----------------
+wireless			IN	A		192.168.0.253
+				IN	HINFO	"Wireless Router" "B/G"
+;
+gateway			IN	A		192.168.0.254
+router			IN	CNAME	gateway
+;
+;
+; Servers
+; -----------------
+number1			IN	A		192.168.0.1
+				IN	HINFO	"AMD Opteron Dual-Core" "CentOS 7"
+dns				IN	CNAME	number1
+install			IN	CNAME	number1
+ldap				IN	CNAME	number1
+nfs				IN	CNAME	number1
+ntp				IN	CNAME	number1
+one				IN	CNAME	number1
+;
+kvm				IN	A		192.168.0.2
+				IN	HINFO	"Intel i7 Quad Core" "CentOS 6"
+dns2				IN	CNAME	kvm
+imap				IN	CNAME	kvm
+;
+smtp				IN	A		192.168.0.3
+				IN	HINFO	"Single-Core" "KVM CentOS x64"
+email			IN	CNAME	smtp
+dns3				IN	CNAME	smtp
+;
+http				IN	A		192.168.0.4
+				IN	HINFO	"Dual-Core" "KVM CentOS x64"
+dns4				IN	CNAME	http
+git				IN	CNAME	http
+svn				IN	CNAME	http
+viewvc			IN	CNAME	http
+;
+;
+;
+; Workstations
+; -----------------
+;
+;
+; Diskless
+; -----------------
+jukebox1			IN	A		192.168.0.91
+jukebox2			IN	A		192.168.0.92
+jukebox3			IN	A		192.168.0.93
+;
+;
+; Dynamic clients
+; -----------------
+dhcp-200			IN	A		192.168.0.200
+dhcp-201			IN	A		192.168.0.201
+dhcp-202			IN	A		192.168.0.202
+dhcp-203			IN	A		192.168.0.203
+dhcp-204			IN	A		192.168.0.204
+dhcp-205			IN	A		192.168.0.205
+dhcp-206			IN	A		192.168.0.206
+dhcp-207			IN	A		192.168.0.207
+dhcp-208			IN	A		192.168.0.208
+dhcp-209			IN	A		192.168.0.209
+;
+;
+; -----------------------------------------------------------------------------
+; End

@@ -1,0 +1,70 @@
+HOWTO.kernel - Option 3
+=========================
+
+
+Create a kernel RPM using rpmbuild and make
+-----------------------------------------------------------
+
+This option requires ~10 GB space to build.
+This results in a single kernel RPM with debugging (~1.5 GB).
+
+Create the build environment (examples uses $HOME):
+  $ mv ~/rpmbuild ~/rpmbuild.old
+  $ mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+  $ echo "%_topdir %(echo $HOME)/rpmbuild" > ~/.rpmmacros
+
+Locate this exact kernel source RPM for CentOS 6 and install it.
+  $ rpm -ivh http://vault.centos.org/6.9/updates/Source/SPackages/kernel-2.6.32-696.6.3.el6.src.rpm
+      or wget it and then install it with:
+  $ rpm -ivh ~/Downloads/kernel-2.6.32-696.6.3.el6.src.rpm
+
+Modify the spec file
+  $ vi ~/rpmbuild/SPECS/kernel.spec
+    Change:
+    # % define buildid .local
+    To something like:
+    %define buildid .jukeboxYOU (where "YOU" is your initials)
+
+Extract the kernel source into the build environment:
+  $ rpmbuild -bp --target=$(uname -m) ~/rpmbuild/SPECS/kernel.spec
+  Additional dependencies may need to be installed to the build system.
+  If the key gen gets stuck, run "$ find /" to create some entropy.
+
+Configure the kernel:
+  $ cd ~/rpmbuild/BUILD/kernel-2.6.32-696.6.3.el6/linux-2.6.32-696.6.3.el6.jukeboxYOU.x86_64
+
+  Make a backup of the original config file:
+  $ mv .config config-orig
+
+  Copy the jukebox config file to the BUILD directory:
+  $ cp ~/jukebox/kernel/jukebox-config-2.6.32-696.6.3.el6.x86_64 .config
+ 
+  Update the build config:
+  $ make menuconfig
+    Select General setup
+    Change the second line to "-jukeboxYOU", where YOU is as above.
+    Enable the third line, "Automatically append..."
+    If needed, add a NDD for the Ethernet NIC.
+        See Appendix A of 2.HOWTO.kernel for details.
+    Exit menuconfig, saving the new kernel configuration.
+
+Apply the inode.c patch:
+  $ pushd ~/rpmbuild/BUILD/kernel-*/vanilla-*/fs/nfs/
+  $ patch < ~/jukebox/kernel/jukebox-patch-2.6.32-696.6.3.el6.x86_64
+  $ popd
+
+Create the kernel RPM:
+  $ make [-jX] binrpm-pkg 2>build.err|tee build.out
+    ...
+  Wrote: ~/rpmbuild/RPMS/x86_64/kernel-2.6.32jukeboxYOU-1.x86_64.rpm
+
+Install the kernel RPM to the rootfs that you have created, thus adding
+both the kernel and kernel modules to the jukebox.
+  $ sudo yum --installroot=/nfsroot/jukebox install \
+            ~/rpmbuild/RPMS/x86_64/kernel-2.6.32jukeboxYOU-1.x86_64.rpm
+
+Should you need to remove the newly installed kernel from the rootfs,
+  these commands may be used:
+
+  $ yum --installroot=/nfsroot/jukebox list installed|grep kernel
+  $ sudo yum --installroot=/nfsroot/jukebox remove kernel

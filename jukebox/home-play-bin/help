@@ -1,0 +1,45 @@
+#/bin/bash
+#
+# The "?" file should be a symlink /home/play/bin/help:
+#   $ ln -s help \?
+# ##
+cat <<EOF | less
+% COMMANDS :  
+-----------------------------------------------
+ ?       Display the help menu.  
+ a       List the artists.
+ ap      Album play - play songs in album order.
+ apd     Album play - play songs in album order with a random delay.
+ gen     Generate the music list.
+ help    Display the help menu.
+ s       List the singles.
+ sp      Singles play - play songs in random order.
+ spd     Singles play - play songs in random order with a random delay.
+ sps     Singles play with skip - to skip selected artists (see header).
+ ss      Singles search - search/list songs, but do not play them.
+ sz      Show the z files.  Like typing z.[tab][tab]
+
+% SYNTAX :
+-----------------------------------------------
+ <ap|apd|sp|spd|sps> [all] <keyword1> [keyword2] ... [keyword9]
+
+% EXAMPLES : 
+-----------------------------------------------
+ ap sinatra            (play Sinatra's albums)
+ sp sinatra martin     (play songs from Sinatra *or* Dino)
+ sp all sinatra martin (play songs from Sinatra *and* Dino)
+ ap all u2 joshua      (play the Joshua Tree album)
+
+% COLLECTIONS :
+-----------------------------------------------
+ z.<description> : type z period followed by 2 tab's
+
+% MORE HELP :  
+  -----------------------------------------------
+ Space                     :  pause / resume
+ Left -or- Right Arrow     :  rewind -or- advance a song
+ Enter -or- Ctrl-C         :  skip to the next song
+ 2+ Ctrl-C's               :  exit play mode
+ Shift + Page Up|Down      :  scroll up / down
+ ?                         :  display this menu
+EOF

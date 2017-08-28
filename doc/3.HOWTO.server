@@ -1,0 +1,112 @@
+HOWTO.server
+==================
+
+
+Introduction
+------------------
+
+With the kernel and kernel modules installed to the rootfs, the next step
+is to boot the the jukebox via PXEboot.  Basic instructions to perform this
+task are provided in this HOWTO.
+
+If issues arise during the process, and the system halts, more text can be
+displayed on the screen by appending the kernel option "vga=0x307" in the
+"APPEND" section of the PXEboot configuration and again booting the jukebox.
+
+Also, commenting out "tput clear" in /nfsroot/jukebox/etc/rc.d/rc.sysinit
+will keep more of the boot messages on the screen.
+
+For still more, scrolling using SHIFT-PageUP/PageDOWN may help as well.
+
+
+
+
+Overview of the booting process
+-----------------------------------------------------------------------------
+
+Booting of the jukebox uses several components that must work together.
+Perhaps the hardest part is making sure all the components (files, filenames
+and hostnames) are in sync between the components.
+
+To troubleshoot problems, it should be helpful to understand the expected
+booting behavior.  However, initialization will vary by OS.  In looking just
+at CentOS:
+           CentOS-5 uses SysV init
+           CentOS-6 uses upstart
+           CentOS-7 uses systemd
+
+For a general overview of the jukebox, we have:
+
+1.  When the jukebox powers on, the BIOS directs it to perform a PXEboot.
+2.  The jukebox uses DHCPDISCOVER to get information, including the IP addr,
+    subnet, router, name servers, the PXEboot server, and a root file system.
+3.  The DHCP server delivers the information, and may also provide the filename
+    to boot (pxelinux.0).
+4.  The client uses TFTP to download the boot file, and then it performs the
+    PXE boot.  For more, see:  http://www.syslinux.org/old/pxe.php
+    Unless told otherwise by DHCP (next-server directive), the jukebox
+    downloads pxelinux.0 from the DHCP server.
+5.  The code in pxelinux.0 searches a well-known sequence of locations for a
+    configuration file.  The last of these locations is a file named default.
+    The configuration file may direct the booting node to retrieve a kernel,
+    a kernel and an initrd/initramfs, or it may display a menu with options
+    with a timeout that defaults to a specific kernel/initramfs configuration.
+6.  Either a selection is manually made or the default option is triggered,
+    and the kernel/initramfs is delivered to the booting node via TFTP.
+7.  The kernel is then booted, and the initramfs is mounted and init'd. :)
+8.  The rootfs path could be provided by PXE, or by DHCP.  If it is configured
+    in both, the PXE setting overrides the DHCP provided rootfs.  For
+    configuration purposes, one could put the stable rootfs in the DHCP
+    configuration, and override it with a rootfs under test in the PXE
+    configuration for testing.
+9   Once the kernel is booted and init'd enough to mount a rootfs, the rootfs
+    is accessed via a protocol such as NFS.  The kernel then abandons the
+    initramfs and mounts the NFS directory as the root (/) directory.
+10. System initialization (SysV init, Upstart, systemd) occurs by following
+    the designed sequence for that type of initialization.  In the jukebox
+    initialization, the sequence interrupts the normal process when it gets
+    to /etc/rc.d/rc.sysinit.  That is, it ends with that file, but not until
+    it performs the following:
+    a.  Mounting volitile directories in RAM disks.
+    b.  Mounting the music over NFS.
+    c.  Automatically logging-in as the user "play".
+    d.  Creating a r/w "scratch" area in RAM (~play/bin/scratch)
+
+
+
+Creating the environment by which a diskless client can mount the rootfs.
+-----------------------------------------------------------------------------
+
+With the process now outlined, there are services to configure to make it all
+work.  These services include:
+
+    DHCP, DNS, NFS, PXEboot and TFTP
+
+Since "nobody" can recall every aspect of these services configuration, no
+no matter how many times they may have set them up, this project provides
+some sample configurations for each of the required services at the end of
+this document.
+
+These examples may be found in ~/jukebox/server, and are as follows:
+
+  dhcp    - etc-dhcp-dhcpd.conf
+  dns     - etc-named.conf & the "forward / reverse zone files"
+  nfs     - etc-exports
+  pxeboot - var-lib-tftpboot-boot.msg & var-lib-tftpboot-pxelinux.cfg-default
+
+After installing the necessary services on the server, use the aforementioned
+sample configuration files to configure the services.  The names of those
+configuration files indicate their location on the file system.  For guidance,
+search for HOWTO's on the web to complete each task.
+
+
+
+Ready to play
+----------------
+
+An audio file, music-ReadyToPlay.m4, in the ~/jukebox/server/music directory,
+should be copied to the /music directory on the NFS share.  This file is played
+at the end of the initialization by /etc/rc.d/rc.sysinit.  It's optional.
+
+Once you can boot the jukebox using your rootfs, see the instructions in
+4.HOWTO.mplayer.

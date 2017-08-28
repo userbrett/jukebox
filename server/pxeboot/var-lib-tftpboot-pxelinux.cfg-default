@@ -1,0 +1,88 @@
+# default
+# The PXE boot default file.
+# -----------------------------------------------------------------------------
+ 
+# -------
+# Notes:
+# -------
+# Each comment **MUST** be followed by a space.  Otherwise, a "notice".
+# Each space after a comment must be followed with some text, or a notice.
+# ----------------
+# The "APPEND" line passes arguments to the kernel.
+# There can be only ONE (1) "APPEND" per LABEL/ITEM/kernel.
+# -----------------------------------------------------------------------------
+# Configuring the IP and NFSroot can be static, dynamic, or a hybrid.
+# ----------------
+# Here is an example of a fully static PXE entry supporting nfsroot:
+# APPEND text ip=192.168.0.91:192.168.0.1:192.168.0.254:255.255.255.0:jukebox:eth0:on root=/dev/nfs nfsroot=192.168.0.1:/nfsroot/jukebox
+# --------
+# The syntax for the static IP portion of the static configuration is:
+# ip=$(ip):$(nfsserverip):$(gatewayip):$(netmask):$(hostname):$(if):on
+# ip=192.168.0.91:192.168.0.1:192.168.0.254:255.255.255.0:jukebox:eth0:on
+# ----------------
+# For dynamic, the DHCP server provides both the IP and nfsroot.
+# Here is an example of a fully dynamic PXE entry supporting nfsroot:
+# APPEND text ip=dhcp root=/dev/nfs
+# ----------------
+# A hybrid configuration provides IP addr via DHCP, and nfsroot via static:
+# --------
+# APPEND text ip=dhcp root=/dev/nfs nfsroot=192.168.0.1:/nfsroot/jukebox
+# ----------------
+# Based on the above, dynamic is best overall, and hybrid is best for testing.
+# For the rootfs entry to be provided via DHCP, see the dhcpd.conf provided.
+# If both dynamic and hybrid are configured, hybrid rootfs overrides dynamic.
+# -----------------------------------------------------------------------------
+# If supported in the kernel, a higher screen resolution may be used, such as:
+# vga=0x307 (vs. vga=normal which is 80x25 chars).
+# ----
+# For debugging, the framebuffer console may be configured to support more
+# scrollback by appending the parameter "fbcon=scrollback:128".
+# ----
+# For a serial console, this parameter string may be used:
+#   console=ttyS0,19200 earlyprint=serial,ttyS0,19200
+# ----
+# To debug the NFSroot boot, the following parameter may be added:
+# nfsrootdebug
+# ----
+# In addition to nfsrootdebug, there are several "default" values that are
+# used with nfsroot boots. They include nfsvers=4|3|2, tcp|udp, ro, nolock,
+# rsize=16384, wsize=16384.
+# ----
+# It appears that rootfs kernels attempt NFS v4, then v3, then v2.
+# It also appears that, by default, they perform a read-only boot of the
+# nfsroot.
+# ----
+# This information is applied in the jukebox configurations below.
+# -----------------------------------------------------------------------------
+
+DEFAULT 1
+PROMPT 100
+MENU TITLE PXE Boot Menu
+# TIMEOUT 10	# 1 second
+TIMEOUT 30	# 3 seconds
+# TIMEOUT 100	# 10 seconds
+# TIMEOUT 300	# 30 seconds
+DISPLAY boot.msg
+
+# Jukebox - NFS Root Disk - Dynamic (DHCP provides IP and rootfs)
+LABEL 1
+  MENU LABEL Jukebox
+  KERNEL boot/vmlinuz-2.6.32-696.6.3.el6.jukeboxYOU.x86_64
+  APPEND text ip=dhcp ramdisk_size=524288 root=/dev/nfs
+
+# Jukebox - NFS Root Disk - Hybrid (DHCP provides IP, but not rootfs)
+LABEL 2
+  MENU LABEL JukeboxStatic
+  KERNEL boot/vmlinuz-2.6.32-696.6.3.el6.jukeboxYOU.x86_64
+  APPEND text ip=dhcp ramdisk_size=524288 root=/dev/nfs nfsroot=192.168.0.1:/nfsroot/jukebox,udp,hard,rsize=16384
+
+# Jukebox - NFS Root Disk - Fully Static (DHCP not used)
+LABEL 3
+  MENU LABEL JukeboxStatic
+  KERNEL boot/vmlinuz-2.6.32-696.6.3.el6.jukeboxYOU.x86_64
+  APPEND text ip=192.168.0.91:192.168.0.1:192.168.0.254:255.255.255.0:jukebox:eth0:on ramdisk_size=524288 root=/dev/nfs nfsroot=192.168.0.1:/nfsroot/jukebox,udp,hard,rsize=16384
+
+# Memtest
+LABEL 4
+  MENU LABEL Diagnostics (memtest)
+  KERNEL boot/memtest

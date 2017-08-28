@@ -1,0 +1,11 @@
+# /etc/exports
+#
+# NFS Exports
+#
+# *.domain.com (requires that both A and PTR records matches)
+#
+
+# Jukebox's
+/nfsroot/jukebox      jukebox*.domain.com(ro,no_root_squash)
+/data/music           jukebox*.domain.com(ro,root_squash,insecure)
+

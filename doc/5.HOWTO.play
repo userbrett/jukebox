@@ -1,0 +1,161 @@
+HOWTO.play
+===================
+
+
+Setup
+---------------
+
+By now you should have a diskless node that boots over NFS, mounts music
+over NFS, and can play individual audio files music via "mplayer".  You may
+have also enabled access the node via ssh.
+
+The next step is to install the jukebox components that will allow you to
+search and play your music.
+
+The jukebox uses a list of audio files (singles) as its database.  The "gen"
+command will create the list in a temp directory.  Once the list is
+available, other jukebox commands will make use of the list, searching it
+using the options you provide, and then playing the singles that match your
+request.
+
+The list is created by searching the /music/Singles directory.  If run from the
+jukebox, it will be saved to the /tmp ramdisk.  To make it persistent across
+reboots, it needs to be run on the server and moved to the jukebox:
+
+   $ sudo ln -s /path-to-music/music /music (if non-existant)
+   $ sudo /nfsroot/jukebox/home/play/bin/gen
+   $ sudo mv /tmp/playlist_singles /nfsroot/jukebox/tmp
+   $ sudo chown 500.500 /nfsroot/jukebox/tmp/playlist_singles
+   $ sudo rm /music (optional)
+
+If the rootfs HOWTO was not used, these commands will need to be run to
+customize the play environment: (as root)
+
+   $ sudo /bin/su -
+   # echo 'enable -n help' >> /nfsroot/jukebox/home/play/.bashrc
+   # echo 'set viminfo=""' >> /nfsroot/jukebox/home/play/.vimrc
+   # echo 'export PATH=$HOME/bin:$PATH' >> /nfsroot/jukebox/home/play/.bash_profile
+   # echo 'set -o vi'   >> /nfsroot/jukebox/home/play/.bash_profile  (optional)
+   # cd /nfsroot/jukebox/home/play/bin
+   # ln -s help \?
+   # exit
+
+To install the jukebox tools, run these commands:
+
+   $ sudo cp -rp ~/jukebox/jukebox/home-play-bin/* /nfsroot/jukebox/home/play/bin
+   $ sudo chown -R 500.500 /nfsroot/jukebox/home/play
+      * Note:  The UID.GID may be different if the rootfs HOWTO was not used.
+
+
+Playing
+---------------
+
+When playing music, the singles are displayed to the screen with the artist
+on the first line and the track number and song on the second line.  In order
+to properly display the playing music, the album, track number, and song
+should be collected into this format:
+
+   /music/Singles/The Motown Collection/2-03 Bernadette.mp3
+
+   Using iTunes to rip the music produces the above format.
+
+
+The "sp" or "singles play" command is used to play one or more singles.  Here
+is a example:
+
+    $ sp muddy waters
+
+    While this command plays singles by the artist known as "Muddy Waters", it
+    also plays singles that have either of the keywords, muddy or waters, in
+    their name.  To play only the songs by Muddy Waters, use this command
+    instead:
+
+    $ sp all muddy waters
+
+    The all parameter shown above tells sp that all the arguments must match,
+    meaning both muddy and waters.
+
+
+By default, the sp command plays singles in random order.  To play singles from
+an "album" in the track order, the ap (album play) command is used.
+
+    $ ap all muddy waters 1947
+
+    The above plays: /music/Singles/Muddy Waters/His Best [1947-1955]/*
+    ....... but not: /music/Singles/Muddy Waters/His Best [1956-1964]/*
+
+    And it plays track 1, then track 2, track 3 until the "album" ends.
+
+
+
+When attempting to play artists whose name consists of two words or names,
+a little bit of "syntax" (quotes, escapes) is required.  By now you should
+be able to recognize that the following is a single argument, that plays
+the music by Frank Sinatra.
+
+    $ sp 'Frank\\ Sinatra'
+
+    And stacking together two artists of the same era extends the music lists,
+    and the syntax:
+
+    $ sp 'Frank\\ Sinatra' 'Dean\\ Martin'
+
+
+
+As complex sequences can be created, the sequences can be saved as playlists.
+Playlists are saved commands that can be quickly recalled.  For example, saving
+the last command and displaying it by `cat` shows:
+
+    ~/bin$ cat z.sinatra
+    sp 'Frank\\ Sinatra' 'Dean\\ Martin'
+
+    As bash provides tab completion, it is recommended to preface the playlists
+    with z-dot, thus they can be quickly recalled with z-tab-tab.
+
+    While the command line playing of music is certainly the easiest, the
+    ~/play/bin/scratch directory provides a non-persistent scratch space where
+    you can create and edit playlists.  Once you have one that works, scp it
+    to the ~play directory in the rootfs on the server, and it will be
+    available to you on future boots of the jukebox.
+
+
+
+That's about as complex it gets.  On the flip side, here is as easy as it gets.
+What do you think this command does?
+
+    $ sp s
+
+    If you said "Play all my singles in random order", you would be right!
+    Searches are case insensitive, so "s" matches the "S" in Singles (which is
+    in the music list), so every single plays.
+
+
+
+What if you want to play your entire collection, but skip a few bands?  Well,
+there's an app for that - sps.  Rather than prompting for both what to play
+and what not to play, the sps command needs to be edited by adding the names of
+the artists to skip when the command is run.  Search for "Skip" in sps to
+find the edit location.
+
+
+
+The help menu for the jukebox, reachable by either "help" or "?", provides a
+quick summary of the commands that manage, search and play the singles:
+
+    ?       Display the help menu.
+    a       List the artists.
+    ap      Album play - play songs in album order.
+    apd     Album play - play songs in album order with a random delay.
+    chop    See the header of the help command.
+    gen     Generate the music list.
+    help    Display the help menu.
+    s       List the singles.
+    sp      Singles play - play songs in random order.
+    spd     Singles play - play songs in random order with a random delay.
+    sps     Singles play with skip - to skip selected artists (see header).
+    ss      Singles search - search/list songs, but do not play them.
+    sz      Show the z files.  Like typing z.[tab][tab]
+
+
+
+Life is short.  Have fun and "play" along the way. :)  -Brett

@@ -1,0 +1,73 @@
+HOWTO.kernel - Option 2
+=========================
+
+
+Create RPMs without debugging using rpmbuild
+----------------------------------------------------------
+
+This option requires ~10 GB space to build.
+
+Create the build environment (examples uses $HOME):
+  $ mv ~/rpmbuild ~/rpmbuild.old
+  $ mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+  $ echo "%_topdir %(echo $HOME)/rpmbuild" > ~/.rpmmacros
+
+Locate this exact kernel source RPM for CentOS 6 and install it.
+  $ rpm -ivh http://vault.centos.org/6.9/updates/Source/SPackages/kernel-2.6.32-696.6.3.el6.src.rpm
+      or wget it and then install it with:
+  $ rpm -ivh ~/Downloads/kernel-2.6.32-696.6.3.el6.src.rpm
+
+Modify the spec file
+  $ vi ~/rpmbuild/SPECS/kernel.spec
+    Change:
+    # % define buildid .local
+    To something like:
+    %define buildid .jukeboxYOU (where "YOU" is your initials)
+
+Replace the default config file with the jukebox config:
+  It will then be copied to both the x64 and noarch directories.
+  $ mv ~/rpmbuild/SOURCES/config-x86_64-generic \
+       ~/rpmbuild/SOURCES/config-x86_64-generic-orig
+  $ cp ~/jukebox/kernel/jukebox-config-2.6.32-696.6.3.el6.x86_64 \
+       ~/rpmbuild/SOURCES/config-x86_64-generic
+
+Extract the kernel source into the build environment:
+  $ rpmbuild -bp --target=$(uname -m) ~/rpmbuild/SPECS/kernel.spec
+  If the key gen gets stuck, run "$ find /" to create some entropy.
+
+Apply the inode.c patch:
+  $ pushd ~/rpmbuild/BUILD/kernel-*/vanilla-*/fs/nfs/
+  $ patch < ~/jukebox/kernel/jukebox-patch-2.6.32-696.6.3.el6.x86_64
+  $ popd
+
+Configure the kernel:
+  $ pushd ~/rpmbuild/BUILD/kernel-*/linux*x86_64/
+  $ make menuconfig
+  $ cp -p .config ../linux*noarch/
+  $ popd
+
+Build the kernel and kernel-devel x86_64 packages:
+  $ rpmbuild -bb --with baseonly --without debug --without debuginfo \
+       --without kabichk --without perf --without python-perf \
+       --without headers --target=$(uname -m) \
+       ~/rpmbuild/SPECS/kernel.spec 2>build.err|tee build.out
+
+  Wrote: ~/rpmbuild/RPMS/x86_64/kernel-2.6.32-696.6.3.el6.jukeboxYOU.x86_64.rpm
+  Wrote: ~/rpmbuild/RPMS/x86_64/kernel-devel-2.6.32-696.6.3.el6.jukeboxYOU.x86_64.rpm
+
+Build the firmware and kernel-abi-whitelists x86_64 packages:
+  $ rpmbuild -bb --target=noarch --with firmware --without doc \
+       ~/rpmbuild/SPECS/kernel.spec
+
+  Wrote: ~/rpmbuild/RPMS/noarch/kernel-firmware-2.6.32-696.6.3.el6.jukeboxYOU.noarch.rpm
+  Wrote: ~/rpmbuild/RPMS/noarch/kernel-abi-whitelists-2.6.32-696.6.3.el6.jukeboxYOU.noarch.rpm
+
+Install the kernel and kernel-firmware RPMs, along with several dependencies:
+  $ sudo yum --installroot=/nfsroot/jukebox install \
+      ~/rpmbuild/RPMS/x86_64/kernel-2.6.32-696.6.3.el6.jukeboxYOU.x86_64.rpm \
+      ~/rpmbuild/RPMS/noarch/kernel-firmware-2.6.32-696.6.3.el6.jukeboxYOU.noarch.rpm
+
+Should you need to remove the newly installed kernel from the rootfs,
+  these commands may be used:
+  $ yum --installroot=/nfsroot/jukebox list installed|grep kernel
+  $ sudo yum --installroot=/nfsroot/jukebox remove kernel kernel-firmware

@@ -1,0 +1,146 @@
+README
+==============
+
+-----------------------------------------
+Overview
+-----------------------------------------
+
+This project provides a jukebox for your digital music, so that you can play
+your music over your home theater/stereo system using a cool, quiet device.
+
+Using the jukebox you can search your music, play music in a variety of ways,
+and also create and manage playlists.  For example, an individual song can be
+played, or a set of songs from an album or collection can be played.
+
+The default is to always play the songs in a random order, but you can also
+play them in the album order - as they were originally released.  Also, the
+default is play the songs with a short pause between each, but you can also
+use a pause of random length between songs.
+
+This project does require assembly, and it is hoped that the instructions will
+suffice for both adventurers and experts alike.  It is recommended to begin
+with option #1, the simplest way to get started and an easy way to interview
+this project.
+
+Option #1 is easy to start with.  It provides the ability to search for music,
+play music in a variety of ways, and also to create and manage playlists.  It
+is recommended as a starting point to evaluate the jukebox software.  The
+downside of option #1 is that the operating system as well as the music must
+reside on the jukebox's local storage.
+
+Option #1 looks like this:
+
+    |----------|
+    | Diskfull |
+    | Jukebox  |
+    |----------|
+         ^
+         | 
+         | -- Audio Cable(s) -----> [ Receiver ] ----> [ Speakers ]
+         |
+         | -- HDMI ---------------> [ TV / Monitor ]
+         |
+         | -- Bluetooth ----------> [ Wireless Keyboard ]
+
+
+Option #2 improves upon option #1 by having the jukebox mount the music from
+a server using NFS.  With option #2, data redundancy is not needed on the
+jukebox.  The downside of option #2 is that it still needs local storage for
+an operating system.
+
+Option #2 looks likes this:
+
+    |----------|                                 |--------|
+    | Diskfull |         (MUSIC via NFS)         | Linux  |
+    | Jukebox  | <--------- Ethernet ----------> | Server |
+    |----------|                                 |--------|
+         ^
+         | 
+         | -- Audio Cable(s) -----> [ Receiver ] ----> [ Speakers ]
+         |
+         | -- HDMI ---------------> [ TV / Monitor ]
+         |
+         | -- Bluetooth ----------> [ Wireless Keyboard ]
+
+
+Option #3 improves upon option #2 by having the jukebox mount the root file
+system (rootfs) as well as the music over NFS.  It requires a little bit of
+work, which comprises the bulk of the documentation in this project.
+
+Option #3, a diskless deployment, looks like this:
+
+    |----------|                                 |--------|
+    | Diskless |    (ROOT-FS & MUSIC via NFS)    | Linux  |
+    | Jukebox  | <--------- Ethernet ----------> | Server |
+    |----------|                                 |--------|
+         ^
+         | 
+         | -- Audio Cable(s) -----> [ Receiver ] ----> [ Speakers ]
+         |
+         | -- HDMI ---------------> [ TV / Monitor ]
+         |
+         | -- Bluetooth ----------> [ Wireless Keyboard ]
+
+
+Regarding the hardware for the jukebox, a quiet device with a low-power draw
+is preferred.  Though something like a Raspberry Pi would be ideal, x64 PC's
+with small footprints, such as the Shuttle XG-41, work very well.
+
+
+-----------------------------------------
+Details / Further Documentation
+-----------------------------------------
+
+This project provides eight (8) HOWTO documents.  They are listed in the
+doc directory as:
+
+     doc/1.HOWTO.rootfs
+     doc/2.HOWTO.kernel
+     doc/2.HOWTO.kernel.option-1
+     doc/2.HOWTO.kernel.option-2
+     doc/2.HOWTO.kernel.option-3
+     doc/3.HOWTO.server
+     doc/4.HOWTO.mplayer
+     doc/5.HOWTO.play
+             
+HOWTO.rootfs  - This demonstrates how to create a diskless rootfs.  After
+                completing this HOWTO, the kernel modules, mplayer and the
+                "play music" scripts should be added to the rootfs, and
+                once booted it will become a diskless jukebox.
+
+HOWTO.kernel  - This provides an overview of creating a kernel that can perform
+                a network boot of a rootfs.  It introduces the three (3) ways
+                to build the kernel and modules, and the main advantage(s) and
+                shortcomings of each.  After reading this HOWTO, it is hoped
+                that which kernel option to use will be known.  The reader
+                would then use option #1, #2 or #3.
+
+HOWTO.server  - This provides an overview of the booting sequence for a
+                diskless workstation, and presents the details about
+                configuring the necessary services to boot diskless.
+
+HOWTO.mplayer - This provides information about getting the media player
+                installed on the jukebox.
+
+HOWTO.play    - This presents the command line interface to the jukebox.
+
+
+As the documentation for this project is unable to address every Linux
+distribution, not to mention every version of every Linux distribution, this
+project provides instructions for one specific release (CentOS-6.9) with the
+belief that the instructions from this example may be integrated into other
+other releases as needed.  For clarification, this implies that both the
+diskless jukebox, as well as the accompanying server, are both running
+CentOS-6.9.  With the availability of VMs, it is believed that setting up a
+single CentOS-6.9 VM to learn, validate and port the process is acceptable.
+
+The HOWTO's are a bit pedantic, as they were written in such a way as to
+not overlook simple things that may be obvious to many, but not all.
+
+For jukebox option #1, begin with HOWTO's #4 and #5.
+For jukebox option #2, begin with HOWTO's #4 and #5, and add HOWTO #3.
+For jukebox option #3, begin with HOWTO #1.
+
+Lastly, the commands provided in the HOWTO's expect that the jukebox git repo
+has been cloned to $HOME, and that if a diskless jukebox is to be created, it
+will be created in the /nfsroot/jukebox directory.

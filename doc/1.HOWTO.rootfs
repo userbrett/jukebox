@@ -1,0 +1,180 @@
+HOWTO.rootfs
+====================
+
+Please read (or at least skim) this entire document before you begin.
+
+
+-----------------------------------------
+Creating a rootfs to be served over NFS
+-----------------------------------------
+
+This project suggests two options for creating the nfsroot:
+
+    1.  Manually creating the rootfs (recommended).
+    2.  Cloning an existing operating system.
+
+Examples for each are listed below, with the expectation:
+
+    1.  The rootfs will be created in the directory /nfsroot/jukebox.
+    2.  The manually created rootfs is based on CentOS-6.9.
+
+--
+
+Option 1:  Manually create the rootfs: (recommended)
+
+    $ sudo mkdir -p /nfsroot/jukebox/var/lib/rpm
+    $ sudo rpm --rebuilddb --root=/nfsroot/jukebox
+    $ sudo rpm -iv --root=/nfsroot/jukebox \
+        http://mirror.centos.org/centos/6/os/x86_64/Packages/centos-release-6-9.el6.12.3.x86_64.rpm
+    $ sudo yum -y --installroot=/nfsroot/jukebox install bash initscripts passwd sudo man yum
+
+
+Option 2:  Clone an existing operating system:
+
+    Login to the server and copy from the remote system to the local server
+    using these commands:
+
+    $ sudo mkdir -p /nfsroot/jukebox
+    $ sudo rsync -a -e ssh --exclude='/proc/*' --exclude='/sys/*' \
+              <IP-ADDRESS-OF-SOURCE>:/ /nfsroot/jukebox
+
+
+-----------------------------------------
+Configure the rootfs
+-----------------------------------------
+
+Whether you cloned or created, you now have an operating system in /nfsroot/jukebox.
+Ensure that you have the necessary packages / configurations by following
+these steps:
+
+1. Create an empty directory and some empty files for the jukebox:
+   $ sudo mkdir /nfsroot/jukebox/music
+   $ sudo /bin/su -
+   # > /nfsroot/jukebox/etc/sysconfig/network
+   The next two lines will provide pseudo-terminals when ssh'ing in: (optional)
+   # echo "none /dev/pts devpts defaults 0 0" > /nfsroot/jukebox/etc/fstab
+   # echo "none /dev/pts devpts defaults 0 0" > /nfsroot/jukebox/etc/mtab
+   # exit
+
+2. Combine /tmp with /var/tmp:
+   $ sudo chroot /nfsroot/jukebox
+   bash-4.1# rmdir /tmp
+   bash-4.1# ln -s /var/tmp /tmp
+   (continue with step #3)
+
+3. Set the root password: (optional)
+   bash-4.1# passwd
+   Changing password for user root.
+   New password: ...
+   (continue with step #4)
+
+4. Add the default user, play:
+   bash-4.1# useradd play
+   bash-4.1# mkdir -p ~play/bin/scratch   (scratch will be a writeable RAM disk)
+   bash-4.1# touch ~play/bin/help; ln -s ~play/bin/help ~play/bin/\?
+   bash-4.1# echo 'enable -n help' >> ~play/.bashrc
+   bash-4.1# echo 'set viminfo=""' > ~play/.vimrc
+   bash-4.1# echo 'set -o vi' >> ~play/.bash_profile   (optional: use vi mode)
+   bash-4.1# chown -R play.play ~play
+   bash-4.1# exit
+
+5. Add packages required by the jukebox:
+   $ sudo yum -y --installroot=/nfsroot/jukebox install nfs-utils e2fsprogs rsyslog perl findutils
+
+6. Add an optional package: (highly recommended - provides amixer and aplay)
+   $ sudo yum -y --installroot=/nfsroot/jukebox install alsa-utils
+
+7. Add an editor: (optional:  vim-minimal is already installed)
+   $ sudo yum -y --installroot=/nfsroot/jukebox install vim-enhanced nano
+
+8. Add support for ssh in 'n out: (optional)
+   $ sudo yum -y --installroot=/nfsroot/jukebox install openssh-server openssh-clients
+
+9. Update the existing rc.sysinit with the jukebox-provided rc.sysinit:
+   $ sudo cp -p /nfsroot/jukebox/etc/rc.d/rc.sysinit /nfsroot/jukebox/etc/rc.d/rc.sysinit.orig
+   $ sudo cp ~/jukebox/jukebox/etc-rc.d/rc.sysinit /nfsroot/jukebox/etc/rc.d/rc.sysinit
+
+10. Comment out the "udevadm trigger" command on line #327 in this file:
+    $ sudo vi /nfsroot/jukebox/sbin/start_udev 
+      The line to comment is:
+      /sbin/udevadm trigger --type=devices --action=add
+
+11. Ensure that the hostname "nfs" used in rc.sysinit will resolve.
+    Provide the correct IP addr of the server:
+    $ echo "192.168.0.1 nfs"|sudo tee --append /nfsroot/jukebox/etc/hosts >/dev/null
+    $ cat /nfsroot/jukebox/etc/hosts
+
+12. Add user "play" to the audio group: (to play audio files)
+    $ sudo vi /nfsroot/jukebox/etc/group
+    audio:x:63:play 
+
+13. Allow the initialization to login "play" without a password: (recommended)
+    $ sudo vi /nfsroot/jukebox/etc/shadow
+    Remove the password field, "!!" from the user "play".
+
+14. Allow play to ssh in to the jukebox - without a password: (optional)
+    $ sudo vi /nfsroot/jukebox/etc/ssh/sshd_config
+    Set PermitEmptyPasswords to "yes".
+
+15. Allow user "play" to sudo to "root" - without a password: (optional)
+    $ sudo vi /nfsroot/jukebox/etc/sudoers
+    %wheel  ALL=(ALL)       ALL
+    $ sudo vi /nfsroot/jukebox/etc/group
+    wheel:x:10:play
+
+
+Congratulations, you have now modified the bare rootfs for the jukebox! :)
+
+  Create a backup: (recommended)
+
+  To create the backup, run these as root: (not sudo)
+    $ sudo /bin/su -
+    # cd /nfsroot
+    # find jukebox|cpio -oa|bzip2 > jukebox-centos6.9.cpio.bz
+
+  To restore from backup, run these as root: (not sudo)
+    $ sudo /bin/su -
+    # cd /restorepoint
+    # bzcat /nfsroot/jukebox-centos6.9.cpio.bz|cpio -idmv
+
+
+At this point, the rootfs is ready to be mounted.  However, to mount the
+rootfs as the jukebox, three things are required:
+
+  1.  The BIOS in the jukebox must be configured to perform a PXEboot.
+
+  2.  The kernel provided by the PXE boot must be able to boot rootfs - in
+      this case via NFS.
+
+  3.  The following services must be configured and running on the server.
+
+      a.  DHCPD
+      b.  PXEboot
+      c.  NFS
+
+
+The next step is to create a kernel and the modules, install those to your
+new rootfs, and configure the ability to PXEboot your jukebox.
+
+  To create the kernel and modules, see 2.HOWTO.kernel.
+  To setup the services needed to PXEboot, see 3.HOWTO.server.
+
+
+Once you have the jukebox rootfs booting with the new kernel, come back to
+this next item if you have enabled the SSH server on the jukebox:
+
+  Each boot of the jukebox will generate new keypairs as the /etc directory
+  on the rootfs is non-persistent in RAM.  To avoid key generation for each
+  successive boot, one set of SSH keypairs will need to be copied to the
+  static /etc/ssh directory in the rootfs of the jukebox.
+
+  The command to copy the SSH keys and make them persistent in the jukebox is
+  not my favorite command:
+  ^^^
+
+  [play@jukebox ~]$ sudo /bin/su -
+  [root@jukebox ~]# scp -p /etc/ssh/ssh_host* root@nfs:/nfsroot/jukebox/etc/ssh
+
+  Because of that, it is expected that you will copy the files to a non-root
+  account, and setup the ownership and permissions properly on the server using
+  sudo.

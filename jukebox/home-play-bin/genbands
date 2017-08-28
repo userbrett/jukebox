@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+# genbands
+# generate a list of bands for browsing
+
+cd /music
+
+find . -type d | awk -F/ '{print $4}' | awk -F- '{print $1}' | sort | uniq > /tmp/musicbands
+

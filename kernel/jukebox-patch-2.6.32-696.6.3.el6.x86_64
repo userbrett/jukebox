@@ -1,0 +1,11 @@
+--- inode.c 2017-06-30 10:55:21.000000000 -0600
++++ inode.c.new 2017-07-27 11:48:18.134763462 -0600
+@@ -64,6 +64,8 @@
+ static int nfs_update_inode(struct inode *, struct nfs_fattr *);
+
+ static struct kmem_cache * nfs_inode_cachep;
++static int nfs_invalidate_mapping(struct inode *inode, struct address_space *mapping);
++static inline void nfs_fscache_wait_on_invalidate(struct inode *inode) {}
+
+ static inline unsigned long
+ nfs_fattr_to_ino_t(struct nfs_fattr *fattr)

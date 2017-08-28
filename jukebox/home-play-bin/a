@@ -1,0 +1,5 @@
+#!/bin/bash
+#
+# a - artists - list the artists
+
+ls /music/Singles
