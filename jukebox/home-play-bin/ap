@@ -1,7 +1,8 @@
 #!/usr/bin/perl -w
 #
-# ap - album play 
-# play, in sequential order, the singles that match keyword argument(s)
+# ap - album play.
+#
+# Play the singles that match keyword argument(s).
 
 use strict;
 use diagnostics;
@@ -36,9 +37,9 @@ sub breakcheck {
 
 sub display_header {
 
-# system ( "tput clear" );
+  system ( "tput clear" );
   print "----------------------------------------------------------\n";
-  print "   ***   The Jukebox - Album(s) Play\n";
+  print "   ***   The Music Player\n";
   print "   ***   by Brett\n";
   print "----------------------------------------------------------\n";
 }
@@ -52,6 +53,10 @@ sub create_musiclist {
   @args = @$arrayRef;
 
   $len = scalar @args;
+# print "Args Passed In: $len\n";
+# for ( $count = 0; $count <= $len-1; $count++ ) {
+#   print "Arg$count: " . $args[$count] . "\n";
+# }
 
   # (hack) the extra arg-variables
   switch ( $args[0] ) {
@@ -66,7 +71,6 @@ sub create_musiclist {
        }
     }
   }
-
 
   open( HANDLE, "/tmp/playlist_singles" ) || die "can't open filehandle: $!";
 
@@ -126,9 +130,8 @@ sub create_musiclist {
 }
 
 
-
 sub play_musiclist {
- 
+
   my @musiclist = sort @_;
   my $a = 0;
   my $dir;
@@ -145,30 +148,32 @@ sub play_musiclist {
     $song = basename($_);
 
     chomp ( $song );
-    $songdisplay = $song;
-    $songdisplay =~ s/([\\])//g;
-    print "Playing:  ";
     $dirdisplay = $dir;
     $dirdisplay =~ s/([\\])//g;
     $dirdisplay =~ s|/music/Singles||;
+    $songdisplay = $song;
+    $songdisplay =~ s/([\\])//g;
+    print "Playing:  ";
     print $dirdisplay . "\n";
     print $songdisplay . "\n";
 
-    if ( chdir($dir) ) {
-
-      system ( "mplayer $song > /dev/null 2>&1" ); # hide the output
-
+    my $hdmi = $ENV{"HDMI"};
+    if ( ! defined $hdmi ) {
+      $hdmi = ""; # Play audio via the default sound device.
     } else {
-      print "Cannot change directory to: $dir \n\n";
-      print "Trying the old way...\n";
-      print "$dir/$song";
-      system ( "mplayer $dir/$song > /dev/null 2>&1" ); # hide the output
-      print "\n";
+      $hdmi = "-ao alsa:device=hdmi"; # Play audio via HDMI.
     }
 
-    # has the q (quit) keystroke been keyed ?
-    sleep 1;
+    if ( chdir("/music/Singles" . $dirdisplay) ) {
+      system ( "mplayer $hdmi $song > /dev/null 2>&1" ); # hide the output
 
+    } else {
+      # Unable to change directory.  Trying the old way...
+      system ( "mplayer $hdmi $dir/$song > /dev/null 2>&1" ); # hide the output
+    }
+
+    print "\n";
+    sleep 1;
   }
 }
 
@@ -206,7 +211,7 @@ display_header;
 while ( $arg = shift ) {
   push(@args, $arg);
 }
-# debug
+# Arg Debuggin...
 #print "Args: $len\n";
 #for ( $count = 0; $count <= $len-1; $count++ ) {
 #  print "Arg$count: " . $args[$count] . "\n";
@@ -220,4 +225,3 @@ play_musiclist ( create_musiclist( \@args ) );
 print "\nDone\n";
 
 exit;
-

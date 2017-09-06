@@ -1,6 +1,6 @@
 # chop
 #
-# Chop off the directory path
+# Chop off the directory path.
 #
 # Usage: $ ss all keyword1 keyword2 | chop | sort
 #

@@ -803,8 +803,8 @@ if [ $? -eq 0 ]; then
   echo "Setting the screen timeout..."
   /usr/bin/setterm -blank 1
 
-  echo "Setting volume to 100%..."
-  /usr/bin/amixer set 'Master' 100%
+  echo "Setting volume to 95%..."
+  /usr/bin/amixer set 'Master' 95%
 
   /usr/local/bin/mplayer /music/ReadyToPlay.m4 > /dev/null 2>&1
   tput clear

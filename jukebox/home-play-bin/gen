@@ -2,16 +2,16 @@
 #
 # gen
 #
-# generate the music lists.
+# Generate the music lists.
 #
-# currently, only singles list is generated.
-# others are commented out below in main()
+# Currently, only the singles list is generated.
+# Others are commented out below in main().
 ##
 
 use strict;
 use diagnostics;
 use subs qw( syntax display_header 
-             create_singleslist create_albumlist create_bandlist );
+             create_singleslist create_albumslist create_bandlist );
 use File::Find;
 
 
@@ -46,6 +46,8 @@ sub create_singleslist {
           $File::Find::name =~ s/([(])/\\$1/g;
           $File::Find::name =~ s/([)])/\\$1/g;
           $File::Find::name =~ s/([!])/\\$1/g;
+          $File::Find::name =~ s/([\[])/\\$1/g;
+          $File::Find::name =~ s/([\]])/\\$1/g;
 #         print $File::Find::name . "\n";
           push(@lines, $File::Find::name);
       }
@@ -69,7 +71,7 @@ sub create_singleslist {
 
 
 
-sub create_albumlist {
+sub create_albumslist {
 
   my @lines;
   my @reordered;
@@ -95,6 +97,8 @@ sub create_albumlist {
           $File::Find::name =~ s/([(])/\\$1/g;
           $File::Find::name =~ s/([)])/\\$1/g;
           $File::Find::name =~ s/([!])/\\$1/g;
+          $File::Find::name =~ s/([\[])/\\$1/g;
+          $File::Find::name =~ s/([\]])/\\$1/g;
 #         print $File::Find::name . "\n";
           push(@lines, $File::Find::name);
       }
@@ -116,7 +120,7 @@ sub create_albumlist {
 
 
 sub create_bandlist {
-  my @args = ("/home/play/bin/genbands");
+  my @args = ("/usr/local/bin/genbands");
   system (@args) == 0 || warn "error w/ system call";
 }
 
@@ -143,17 +147,17 @@ sub display_header {
 
 # main()
 # ---------------------
-# gen the music lists
+# gen all three music lists
 #
-if ( $#ARGV < 0 ) {
-# print "\nARGVee: " . $#ARGV . "\n\n";
-  syntax();
-  exit;
-}
+#if ( $#ARGV < 0 ) {
+## print "\nARGVee: " . $#ARGV . "\n\n";
+#  syntax();
+#  exit;
+#}
 
 create_singleslist;
-#create_albumlist;  # ripped albums now obsolete.
-#create_bandlist;   # replaced by genbands.
+#create_albumslist;
+#create_bandlist;
 
 print "\nDone\n";
 exit;

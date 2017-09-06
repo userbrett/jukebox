@@ -1,7 +1,8 @@
 #!/bin/bash
 #
 # genbands
-# generate a list of bands for browsing
+#
+# Generate a list of bands for browsing.
 
 cd /music
 

@@ -109,7 +109,7 @@ volume at 75%:
 
    $ amixer set 'Master' 75%
 
-   By default it is set to 100% in /etc/rc.d/rc.sysinit
+   By default it is set to 95% in /etc/rc.d/rc.sysinit
 
 
 To see the audio playback hardware, run this command:
@@ -117,6 +117,21 @@ To see the audio playback hardware, run this command:
    $ aplay -l
 
    For more options with aplay, see the man page.
+
+
+By default, mplayer sends audio to the default sound device.  Should you wish
+to send audio via the HDMI port, the environment variable $HDMI should be
+defined:
+
+   $ export HDMI=0
+
+   If HDMI should be the default audio output device, that line should be
+   added to an appropriate startup script (~/.bashrc).
+
+   If audio should be played simultaneously via both the default and HDMI
+   ports, this information may be helpful:
+   
+     http://alsa.opensrc.org/TwoCardsAsOne
 
 
 Troubleshooting:
