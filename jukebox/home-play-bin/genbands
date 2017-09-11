@@ -7,4 +7,3 @@
 cd /music
 
 find . -type d | awk -F/ '{print $4}' | awk -F- '{print $1}' | sort | uniq > /tmp/musicbands
-

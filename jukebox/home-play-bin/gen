@@ -125,15 +125,10 @@ sub create_bandlist {
 }
 
 
-
-
-
-
-
-
 sub syntax {
   print "\nUsage: $0 \n";
 }
+
 
 sub display_header {
 
@@ -145,15 +140,12 @@ sub display_header {
   print "\n";
 }
 
+
+
+
 # main()
-# ---------------------
+# ==============================================================
 # gen all three music lists
-#
-#if ( $#ARGV < 0 ) {
-## print "\nARGVee: " . $#ARGV . "\n\n";
-#  syntax();
-#  exit;
-#}
 
 create_singleslist;
 #create_albumslist;
@@ -161,4 +153,3 @@ create_singleslist;
 
 print "\nDone\n";
 exit;
-

@@ -17,8 +17,8 @@ use diagnostics;
 
 sub syntax {
   print "\nUsage: $0 [all] keyword keyword keyword ...\n\n";
-  print "sp aretha ray soul (any match plays)\n";
-  print "sp all smooth soul (all must match to play)\n";
+  print "$0 aretha ray soul (any match plays)\n";
+  print "$0 all smooth soul (all must match to play)\n";
   print "\nType \"HELP\" for more options.\n";
   exit;
 }
@@ -179,7 +179,6 @@ sub play_musiclist {
     my $sleepTime = int(rand($range));
     # print "Sleeping for: " . $sleepTime . " seconds.\n";
     sleep $sleepTime;
-    
   }
 }
 
@@ -217,11 +216,6 @@ display_header;
 while ( $arg = shift ) {
   push(@args, $arg);
 }
-# Arg Debuggin...
-#print "Args: $len\n";
-#for ( $count = 0; $count <= $len-1; $count++ ) {
-#  print "Arg$count: " . $args[$count] . "\n";
-#}
 
 
 # Play()
