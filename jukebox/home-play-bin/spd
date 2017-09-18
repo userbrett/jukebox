@@ -19,8 +19,8 @@ use diagnostics;
 
 sub syntax {
   print "\nUsage: $0 [all] keyword keyword keyword ...\n\n";
-  print "$0 aretha ray soul (any match plays)\n";
-  print "$0 all smooth soul (all must match to play)\n";
+  print "sp aretha ray soul (any match plays)\n";
+  print "sp all smooth soul (all must match to play)\n";
   print "\nType \"HELP\" for more options.\n";
   exit;
 }
@@ -150,22 +150,24 @@ sub play_musiclist {
     $dir  = dirname($_);
     $song = basename($_);
 
+    my $output = "(default):  ";
+    my $hdmi = $ENV{"HDMI"};
+    if ( ! defined $hdmi ) {
+      $hdmi = ""; # Play audio via the default sound device.
+    } else {
+      $output = "(HDMI):  ";
+      $hdmi = "-ao alsa:device=hdmi"; # Play audio via HDMI.
+    }
+
     chomp ( $song );
     $dirdisplay = $dir;
     $dirdisplay =~ s/([\\])//g;
     $dirdisplay =~ s|/music/Singles||;
     $songdisplay = $song;
     $songdisplay =~ s/([\\])//g;
-    print "Playing:  ";
+    print "Playing " . $output;
     print $dirdisplay . "\n";
     print $songdisplay . "\n";
-
-    my $hdmi = $ENV{"HDMI"};
-    if ( ! defined $hdmi ) {
-      $hdmi = ""; # Play audio via the default sound device.
-    } else {
-      $hdmi = "-ao alsa:device=hdmi"; # Play audio via HDMI.
-    }
 
     if ( chdir("/music/Singles" . $dirdisplay) ) {
       system ( "mplayer $hdmi $song > /dev/null 2>&1" ); # hide the output
@@ -219,6 +221,11 @@ display_header;
 while ( $arg = shift ) {
   push(@args, $arg);
 }
+# Arg Debuggin...
+#print "Args: $len\n";
+#for ( $count = 0; $count <= $len-1; $count++ ) {
+#  print "Arg$count: " . $args[$count] . "\n";
+#}
 
 
 # Play()

@@ -50,6 +50,13 @@ To install the jukebox tools, run these commands:
 Playing
 ---------------
 
+The jukebox supports audio output via either the speaker output or, if
+available, the HDMI port.  The environment variable HDMI is used to signal to
+the jukebox which to use.  By default the speaker output is used.  To enable
+audio via HDMI, define the HDMI variable with a value, such as:
+
+   $ export HDMI=Y
+
 When playing music, the singles are displayed to the screen with the artist
 on the first line and the track number and song on the second line.  In order
 to properly display the playing music, the album, track number, and song
