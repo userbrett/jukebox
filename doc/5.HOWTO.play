@@ -42,7 +42,8 @@ customize the play environment: (as root)
 
 To install the jukebox tools, run these commands:
 
-   $ sudo cp -rp ~/jukebox/jukebox/home-play-bin/* /nfsroot/jukebox/home/play/bin
+   $ sudo cp -rp ~/jukebox/jukebox/home-play/bin /nfsroot/jukebox/home/play
+   $ sudo cp -p  ~/jukebox/jukebox/home-play/.bashrc /nfsroot/jukebox/home/play
    $ sudo chown -R 500.500 /nfsroot/jukebox/home/play
       * Note:  The UID.GID may be different if the rootfs HOWTO was not used.
 

@@ -1,0 +1,7 @@
+#!/bin/bash
+#
+# s - singles - list the singles.
+
+pushd /music/Singles
+find . -type f | sort
+popd
