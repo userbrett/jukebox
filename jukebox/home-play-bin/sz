@@ -1,5 +1,0 @@
-#!/bin/bash
-#
-# sz - show the z.* files.
-
-for a in `ls z.*`;do echo -n "$a: "; cat $a; done
