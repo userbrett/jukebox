@@ -89,8 +89,8 @@ binary, these RPMs and their dependencies will need to be installed.  To
 install them from the server, run:
 
     $ sudo yum --installroot=/nfsroot/jukebox install gnutls libpng libmng \
-                 alsa-lib freetype fontconfig libXext libXinerama libXxf86vm \
-                 mesa-libGL pulseaudio-libs
+                 freetype fontconfig libXext libXinerama libXxf86vm \
+                 mesa-libGL pulseaudio-libs alsa-lib
 
 
 At this point, you should be able to successfully play audio files using the
@@ -146,3 +146,4 @@ Troubleshooting:
 
 Once you are able to successfully play /music/ReadyToPlay.m4, proceed to
 5.HOWTO.play.
+

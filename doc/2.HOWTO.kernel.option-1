@@ -76,3 +76,4 @@ Should you need to remove the newly installed kernel and modules from the rootfs
   $ sudo rm -fr /nfsroot/jukebox/boot/System.map-2.6.39-jukeboxYOU \
                 /nfsroot/jukebox/boot/vmlinuz-2.6.39-jukeboxYOU    \
                 /nfsroot/jukebox/lib/modules/2.6.39-jukeboxYOU
+

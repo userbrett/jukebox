@@ -71,3 +71,4 @@ Should you need to remove the newly installed kernel from the rootfs,
   these commands may be used:
   $ yum --installroot=/nfsroot/jukebox list installed|grep kernel
   $ sudo yum --installroot=/nfsroot/jukebox remove kernel kernel-firmware
+

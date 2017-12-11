@@ -110,3 +110,4 @@ at the end of the initialization by /etc/rc.d/rc.sysinit.  It's optional.
 
 Once you can boot the jukebox using your rootfs, see the instructions in
 4.HOWTO.mplayer.
+

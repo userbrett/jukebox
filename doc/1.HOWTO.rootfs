@@ -90,33 +90,36 @@ these steps:
 8. Add support for ssh in 'n out: (optional)
    $ sudo yum -y --installroot=/nfsroot/jukebox install openssh-server openssh-clients
 
-9. Update the existing rc.sysinit with the jukebox-provided rc.sysinit:
+9. Add support for ssh in, play, logout and keeping the music playing: (optional)
+   $ sudo yum -y --installroot=/nfsroot/jukebox install at
+
+10. Update the existing rc.sysinit with the jukebox-provided rc.sysinit:
    $ sudo cp -p /nfsroot/jukebox/etc/rc.d/rc.sysinit /nfsroot/jukebox/etc/rc.d/rc.sysinit.orig
    $ sudo cp ~/jukebox/jukebox/etc-rc.d/rc.sysinit /nfsroot/jukebox/etc/rc.d/rc.sysinit
 
-10. Comment out the "udevadm trigger" command on line #327 in this file:
+11. Comment out the "udevadm trigger" command on line #327 in this file:
     $ sudo vi /nfsroot/jukebox/sbin/start_udev 
       The line to comment is:
       /sbin/udevadm trigger --type=devices --action=add
 
-11. Ensure that the hostname "nfs" used in rc.sysinit will resolve.
+12. Ensure that the hostname "nfs" used in rc.sysinit will resolve.
     Provide the correct IP addr of the server:
     $ echo "192.168.0.1 nfs"|sudo tee --append /nfsroot/jukebox/etc/hosts >/dev/null
     $ cat /nfsroot/jukebox/etc/hosts
 
-12. Add user "play" to the audio group: (to play audio files)
+13. Add user "play" to the audio group: (to play audio files)
     $ sudo vi /nfsroot/jukebox/etc/group
     audio:x:63:play 
 
-13. Allow the initialization to login "play" without a password: (recommended)
+14. Allow the initialization to login "play" without a password: (recommended)
     $ sudo vi /nfsroot/jukebox/etc/shadow
     Remove the password field, "!!" from the user "play".
 
-14. Allow play to ssh in to the jukebox - without a password: (optional)
+15. Allow play to ssh in to the jukebox - without a password: (optional)
     $ sudo vi /nfsroot/jukebox/etc/ssh/sshd_config
     Set PermitEmptyPasswords to "yes".
 
-15. Allow user "play" to sudo to "root" - without a password: (optional)
+16. Allow user "play" to sudo to "root" - without a password: (optional)
     $ sudo vi /nfsroot/jukebox/etc/sudoers
     %wheel  ALL=(ALL)       ALL
     $ sudo vi /nfsroot/jukebox/etc/group
@@ -178,3 +181,4 @@ this next item if you have enabled the SSH server on the jukebox:
   Because of that, it is expected that you will copy the files to a non-root
   account, and setup the ownership and permissions properly on the server using
   sudo.
+
